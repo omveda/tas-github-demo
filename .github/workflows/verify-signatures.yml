@@ -24,9 +24,17 @@ jobs:
         curl -Lo gitsign https://github.com/sigstore/gitsign/releases/download/$GITSIGN_VERSION/gitsign-linux-amd64
         chmod +x gitsign
         sudo mv gitsign /usr/local/bin/gitsign
+      shell: bash
+
+    - name: Verify Gitsign Installation
+      run: |
+        which gitsign
+        ls -l /usr/local/bin/gitsign
+        gitsign version
+      shell: bash
 
     - name: Verify Commit Signatures
       run: |
-        gitsign verify --certificate-identity=${{ secrets.IDENTITY_EMAIL }} --certificate-oidc-issuer=${{ secrets
-        .OIDC_ISSUER }} HEAD
+        gitsign verify --certificate-identity=${{ secrets.IDENTITY_EMAIL }} --certificate-oidc-issuer=${{ secrets.OIDC_ISSUER }} HEAD
+      shell: bash
 
