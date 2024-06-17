@@ -1,0 +1,32 @@
+name: Verify Signatures with Gitsign
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Build project
+      run: |
+        mkdir -p dist
+        echo "Example artifact" > dist/artifact.txt
+
+    - name: Install Gitsign
+      run: |
+        GITSIGN_VERSION=$(curl -s "https://api.github.com/repos/sigstore/gitsign/releases/latest" | jq -r .tag_name)
+        curl -Lo gitsign https://github.com/sigstore/gitsign/releases/download/$GITSIGN_VERSION/gitsign-linux-amd64
+        chmod +x gitsign
+        sudo mv gitsign /usr/local/bin/gitsign
+
+    - name: Verify Commit Signatures
+      run: |
+        gitsign verify --certificate-identity=${{ secrets.IDENTITY_EMAIL }} --certificate-oidc-issuer=${{ secrets
+        .OIDC_ISSUER }} HEAD
+
