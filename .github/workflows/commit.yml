@@ -1,0 +1,21 @@
+name: Create Signed Commit
+
+on: [push]
+
+jobs:
+  commit:
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+
+    name: Create commit
+    steps:
+      - uses: actions/checkout@v3
+      - uses: chainguard-dev/actions/setup-gitsign@main
+      - shell: bash
+        run: |
+          git config --global user.email ${{ secrets.IDENTITY_EMAIL }}
+          git config --global user.name "Rachel Yordán"
+          git commit --allow-empty --message="my signed commit"
+          git cat-file commit HEAD | sed -n '/BEGIN/, /END/p' | sed 's/^ //g' | sed 's/gpgsig //g' | sed 's/SIGNED MESSAGE/PKCS7/g' | openssl pkcs7 -print -print_certs -text
+
