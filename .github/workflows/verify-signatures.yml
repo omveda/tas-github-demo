@@ -59,12 +59,12 @@ jobs:
 #        git config --local gpg.x509.program ./gitsign
 #        git config --local gpg.format x509
 
-    - name: Fetch all git refs
-      shell: bash
-      run: |
-        # Fetch git refs to recognise 'ref' input
-        git fetch origin ${{ github.ref }} --shallow-exclude origin/main
-        git fetch origin origin/main
+#    - name: Fetch all git refs
+#      shell: bash
+#      run: |
+#        # Fetch git refs to recognise 'ref' input
+#        git fetch origin ${{ github.ref }} --shallow-exclude origin/main
+#        git fetch origin origin/main
 
     - name: Verify Gitsign Installation
       run: |
