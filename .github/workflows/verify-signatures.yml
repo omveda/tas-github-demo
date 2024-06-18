@@ -30,41 +30,12 @@ jobs:
         name: output-artifact
         path: dist/artifact.txt
 
-#    - name: Install Gitsign
-#      run: |
-#        GITSIGN_VERSION=$(curl -s "https://api.github.com/repos/sigstore/gitsign/releases/latest" | jq -r .tag_name)
-#        wget -q https://github.com/sigstore/gitsign/releases/download/v0.10.2/gitsign_v0.10.2_linux_amd64 -O gitsign
-#        chmod +x gitsign
-#        sudo mv gitsign /usr/local/bin/gitsign
-#        ./gitsign -v
-#      shell: bash
-
     - name: Install Gitsign
       shell: bash
       run: |
         set -ex
-
-        # Install
         curl -fsL https://github.com/sigstore/gitsign/releases/download/v0.10.2/gitsign_0.10.2_linux_amd64 -o /usr/local/bin/gitsign
         chmod +x /usr/local/bin/gitsign
-
-        # Configure
-        git config --global commit.gpgsign true       # Sign all commits
-        git config --global gpg.x509.program gitsign  # Use gitsign for signing
-        git config --global gpg.format x509           # gitsign expects x509 args
-
-#    - name: Setup signing
-#      shell: bash
-#      run: |
-#        git config --local gpg.x509.program ./gitsign
-#        git config --local gpg.format x509
-
-#    - name: Fetch all git refs
-#      shell: bash
-#      run: |
-#        # Fetch git refs to recognise 'ref' input
-#        git fetch origin ${{ github.ref }} --shallow-exclude origin/main
-#        git fetch origin origin/main
 
     - name: Verify Gitsign Installation
       run: |
@@ -72,6 +43,13 @@ jobs:
         ls -l /usr/local/bin/gitsign
         gitsign version
       shell: bash
+
+    - name: Setup signing
+      shell: bash
+      run: |
+        git config --global commit.gpgsign true
+        git config --global gpg.x509.program gitsign
+        git config --global gpg.format x509
 
     - name: Verify Commit Signatures
       run: |
