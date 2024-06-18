@@ -13,7 +13,8 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - run: echo "${{ github.action_path }}" >> $GITHUB_PATH
+    - name: GitHub path
+      run: echo "${{ github.action_path }}" >> $GITHUB_PATH
       shell: bash
 
     - name: Build project
@@ -30,7 +31,6 @@ jobs:
     - name: Install Gitsign
       run: |
         GITSIGN_VERSION=$(curl -s "https://api.github.com/repos/sigstore/gitsign/releases/latest" | jq -r .tag_name)
-#        curl -Lo gitsign https://github.com/sigstore/gitsign/releases/download/$GITSIGN_VERSION/gitsign-linux-amd64
         wget -q https://github.com/sigstore/gitsign/releases/download/v0.10.2/gitsign_v0.10.2_linux_amd64 -O gitsign
         chmod +x gitsign
         sudo mv gitsign /usr/local/bin/gitsign
@@ -47,8 +47,8 @@ jobs:
       shell: bash
       run: |
         # Fetch git refs to recognise 'ref' input
-        git fetch origin ${{ github.ref }} --shallow-exclude ${{ inputs.ref }}
-        git fetch origin ${{ inputs.ref }}
+        git fetch origin ${{ github.ref }} --shallow-exclude origin/main
+        git fetch origin origin/main
 
     - name: Verify Gitsign Installation
       run: |
