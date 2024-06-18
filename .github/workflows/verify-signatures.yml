@@ -13,18 +13,42 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - run: echo "${{ github.action_path }}" >> $GITHUB_PATH
+      shell: bash
+
     - name: Build project
       run: |
         mkdir -p dist
         echo "Example artifact" > dist/artifact.txt
 
+    - name: Upload output file
+      uses: actions/upload-artifact@v4
+      with:
+        name: output-artifact
+        path: dist/artifact.txt
+
     - name: Install Gitsign
       run: |
         GITSIGN_VERSION=$(curl -s "https://api.github.com/repos/sigstore/gitsign/releases/latest" | jq -r .tag_name)
-        curl -Lo gitsign https://github.com/sigstore/gitsign/releases/download/$GITSIGN_VERSION/gitsign-linux-amd64
+#        curl -Lo gitsign https://github.com/sigstore/gitsign/releases/download/$GITSIGN_VERSION/gitsign-linux-amd64
+        wget -q https://github.com/sigstore/gitsign/releases/download/v0.10.2/gitsign_v0.10.2_linux_amd64 -O gitsign
         chmod +x gitsign
         sudo mv gitsign /usr/local/bin/gitsign
+        ./gitsign -v
       shell: bash
+
+    - name: Setup signing
+      shell: bash
+      run: |
+        git config --local gpg.x509.program ./gitsign
+        git config --local gpg.format x509
+
+    - name: Fetch all git refs
+      shell: bash
+      run: |
+        # Fetch git refs to recognise 'ref' input
+        git fetch origin ${{ github.ref }} --shallow-exclude ${{ inputs.ref }}
+        git fetch origin ${{ inputs.ref }}
 
     - name: Verify Gitsign Installation
       run: |
