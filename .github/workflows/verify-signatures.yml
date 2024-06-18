@@ -12,6 +12,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        ref: main
 
     - name: GitHub path
       run: echo "${{ github.action_path }}" >> $GITHUB_PATH
