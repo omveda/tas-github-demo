@@ -5,6 +5,25 @@ on:
     branches:
       - main
 
+env:
+  IMAGE_REGISTRY: quay.io
+  IMAGE_REPO: lucarval/festoji
+  IMAGE_TAGS: latest
+
+  APPS_DOMAIN: apps.tas-pentest.v5k1.p1.openshiftapps.com
+  TUF_URL: https://tuf-tas-test.apps.tas-pentest.v5k1.p1.openshiftapps.com
+  OIDC_ISSUER_URL: https://token.actions.githubusercontent.com
+  COSIGN_FULCIO_URL: https://fulcio-server-tas-test.apps.tas-pentest.v5k1.p1.openshiftapps.com
+  COSIGN_REKOR_URL: https://rekor-server-tas-test.apps.tas-pentest.v5k1.p1.openshiftapps.com
+  COSIGN_MIRROR: https://tuf-tas-test.apps.tas-pentest.v5k1.p1.openshiftapps.com
+  COSIGN_ROOT: https://tuf-tas-test.apps.tas-pentest.v5k1.p1.openshiftapps.com/root.json
+  COSIGN_OIDC_ISSUER: https://token.actions.githubusercontent.com
+  COSIGN_CERTIFICATE_OIDC_ISSUER: https://token.actions.githubusercontent.com
+  SIGSTORE_FULCIO_URL: https://fulcio-server-tas-test.apps.tas-pentest.v5k1.p1.openshiftapps.com
+  SIGSTORE_REKOR_URL: https://rekor-server-tas-test.apps.tas-pentest.v5k1.p1.openshiftapps.com
+  REKOR_REKOR_SERVER: https://rekor-server-tas-test.apps.tas-pentest.v5k1.p1.openshiftapps.com
+  GITSIGN_OIDC_ISSUER: https://keycloak-keycloak-system.apps.tas-pentest.v5k1.p1.openshiftapps.com/auth/realms/sigstore
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,27 +34,23 @@ jobs:
       with:
         ref: main
 
-    - name: GitHub path
-      run: echo "${{ github.action_path }}" >> $GITHUB_PATH
-      shell: bash
-
     - name: Build project
       run: |
         mkdir -p dist
         echo "Example artifact" > dist/artifact.txt
 
-    - name: Upload output file
-      uses: actions/upload-artifact@v4
-      with:
-        name: output-artifact
-        path: dist/artifact.txt
-
     - name: Install Gitsign
       shell: bash
       run: |
         set -ex
-        curl -fsL https://github.com/sigstore/gitsign/releases/download/v0.10.2/gitsign_0.10.2_linux_amd64 -o /usr/local/bin/gitsign
-        chmod +x /usr/local/bin/gitsign
+        curl -fsL https://cli-server-trusted-artifact-signer.$APPS_DOMAIN/clients/linux/gitsign-amd64.gz -o /usr/local/bin/gitsign-amd64.gz
+        gunzip /usr/local/bin/gitsign-amd64.gz
+        chmod +x /usr/local/bin/gitsign-amd64
+        mv /usr/local/bin/gitsign-amd64 /usr/local/bin/gitsign
+
+    - name: Initialize Gitsign
+      shell: bash
+      run: gitsign initialize --mirror=$TUF_URL --root=$TUF_URL/root.json
 
     - name: Verify Gitsign Installation
       run: |
@@ -44,15 +59,8 @@ jobs:
         gitsign version
       shell: bash
 
-    - name: Setup signing
-      shell: bash
-      run: |
-        git config --global commit.gpgsign true
-        git config --global gpg.x509.program gitsign
-        git config --global gpg.format x509
-
     - name: Verify Commit Signatures
       run: |
-        gitsign verify --certificate-identity=${{ secrets.IDENTITY_EMAIL }} --certificate-oidc-issuer=${{ secrets.OIDC_ISSUER }} HEAD
+        gitsign verify --certificate-identity=vedadashan@gmail.com --certificate-oidc-issuer=$GITSIGN_OIDC_ISSUER HEAD
       shell: bash
 
