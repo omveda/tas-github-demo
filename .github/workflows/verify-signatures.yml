@@ -86,6 +86,6 @@ jobs:
         echo ${{ steps.oidc-token.outputs.id_token }}
         echo ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
         cosign initialize --mirror=$TUF_URL --root=$TUF_URL/root.json
-        cosign login quay.io -u vedadashan2+vedadashan2 -p 1RHTW7CFVKWZ1YMG8SO6CGPP0FKHAI7WT49PGRC3VGJ5P9QD3GCKIHAN5FGR936G 
-        cosign sign --oidc-issuer ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_URL }} --identity-token ${{ steps.oidc-token.outputs.id_token }}   --allow-insecure-registry $TAS_IMAGE
+        cosign sign --oidc-issuer ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_URL }} --identity-token ${{ steps.oidc-token.outputs.id_token }}    dist/artifact.txt
+        ls -ltr
 
