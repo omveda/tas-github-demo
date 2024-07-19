@@ -9,7 +9,6 @@ env:
   IMAGE_REGISTRY: quay.io
   IMAGE_REPO: lucarval/festoji
   IMAGE_TAGS: latest
-
   APPS_DOMAIN: apps.tas-pentest.v5k1.p1.openshiftapps.com
   TUF_URL: https://tuf-tas-test.apps.tas-pentest.v5k1.p1.openshiftapps.com
   OIDC_ISSUER_URL: https://token.actions.githubusercontent.com
@@ -28,6 +27,9 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # This is required to request the OIDC token
+      contents: read   # This is required for actions/checkout
 
     steps:
     - name: Checkout code
@@ -58,21 +60,16 @@ jobs:
       run: gitsign initialize --mirror=$TUF_URL --root=$TUF_URL/root.json
 
     - name: Verify Gitsign Installation
+      shell: bash
       run: |
         which gitsign
         ls -l /usr/local/bin/gitsign
         gitsign version
-      shell: bash
 
     - name: Verify Commit Signatures
+      shell: bash
       run: |
         gitsign verify --certificate-identity=vedadashan@gmail.com --certificate-oidc-issuer=$GITSIGN_OIDC_ISSUER HEAD
-      shell: bash
-
-
-    permissions:
-      id-token: write  # This is required to request the OIDC token
-      contents: read   # This is required for actions/checkout
 
     - name: Request OIDC token
       id: oidc-token
@@ -89,5 +86,6 @@ jobs:
         echo ${{ steps.oidc-token.outputs.id_token }}
         echo ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
         cosign initialize --mirror=$TUF_URL --root=$TUF_URL/root.json
+        cosign login quay.io -u vedadashan2+vedadashan2 -p 1RHTW7CFVKWZ1YMG8SO6CGPP0FKHAI7WT49PGRC3VGJ5P9QD3GCKIHAN5FGR936G 
         cosign sign --oidc-issuer ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_URL }} --identity-token ${{ steps.oidc-token.outputs.id_token }} $TAS_IMAGE
 
