@@ -23,6 +23,7 @@ env:
   SIGSTORE_REKOR_URL: https://rekor-server-tas-test.apps.tas-pentest.v5k1.p1.openshiftapps.com
   REKOR_REKOR_SERVER: https://rekor-server-tas-test.apps.tas-pentest.v5k1.p1.openshiftapps.com
   GITSIGN_OIDC_ISSUER: https://keycloak-keycloak-system.apps.tas-pentest.v5k1.p1.openshiftapps.com/auth/realms/sigstore
+  IMAGE_NAME: quay.io/vedadashan2/tastest0502:latest  
 
 jobs:
   build:
@@ -47,6 +48,10 @@ jobs:
         gunzip /usr/local/bin/gitsign-amd64.gz
         chmod +x /usr/local/bin/gitsign-amd64
         mv /usr/local/bin/gitsign-amd64 /usr/local/bin/gitsign
+        curl -fsL https://cli-server-trusted-artifact-signer.$APPS_DOMAIN/clients/linux/cosign-amd64.gz -o /usr/local/bin/cosign-amd64.gz
+        gunzip /usr/local/bin/cosign-amd64.gz
+        chmod +x /usr/local/bin/cosign-amd64
+        mv /usr/local/bin/cosign-amd64 /usr/local/bin/cosign
 
     - name: Initialize Gitsign
       shell: bash
@@ -63,4 +68,26 @@ jobs:
       run: |
         gitsign verify --certificate-identity=vedadashan@gmail.com --certificate-oidc-issuer=$GITSIGN_OIDC_ISSUER HEAD
       shell: bash
+
+
+    permissions:
+      id-token: write  # This is required to request the OIDC token
+      contents: read   # This is required for actions/checkout
+
+    - name: Request OIDC token
+      id: oidc-token
+      run: |
+        echo "Requesting OIDC token..."
+        echo "Token: ${{ steps.auth.outputs.id_token }}"
+      env:
+        ACTIONS_ID_TOKEN_REQUEST_URL: ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_URL }}
+        ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
+
+    - name: Use OIDC token with Sigstore
+      run: |
+        echo ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_URL }}
+        echo ${{ steps.oidc-token.outputs.id_token }}
+        echo ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
+        cosign initialize --mirror=$TUF_URL --root=$TUF_URL/root.json
+        cosign sign --oidc-issuer ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_URL }} --identity-token ${{ steps.oidc-token.outputs.id_token }} $IMAGE_NAME
 
