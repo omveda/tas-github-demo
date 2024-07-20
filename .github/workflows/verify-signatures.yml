@@ -83,9 +83,8 @@ jobs:
 
     - name: Use OIDC token with Sigstore
       run: |
-        echo ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_URL }}
+        cosign login ${{ secrets.CI_REGISTRY }} -u ${{ secrets.CI_REGISTRY_USER }} -p ${{ secrets.CI_REGISTRY_PASSWORD }}
         cosign initialize --mirror=$TUF_URL --root=$TUF_URL/root.json
-        echo ${{ steps.oidc-token.outputs.id_token }}
-        cosign sign-blob dist/artifact.txt --bundle cosign.bundle --oidc-issuer ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_URL }} --identity-token ${{ steps.oidc-token.outputs.id_token }}
-        cosign verify-blob --certificate-oidc-issuer='https://token.actions.githubusercontent.com' --certificate-identity-regexp='https://github.com/omveda' dist/artifact.txt  -bundle cosign.bundle
+        cosign sign --oidc-issuer ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_URL }} --identity-token ${{ steps.oidc-token.outputs.id_token }} $TAS_IMAGE
+        cosign verify --certificate-oidc-issuer='https://token.actions.githubusercontent.com' --certificate-identity-regexp='https://github.com/omveda' $TAS_IMAGE
 
