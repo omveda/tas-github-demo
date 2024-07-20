@@ -23,6 +23,7 @@ env:
   REKOR_REKOR_SERVER: https://rekor-server-tas-test.apps.tas-pentest.v5k1.p1.openshiftapps.com
   GITSIGN_OIDC_ISSUER: https://keycloak-keycloak-system.apps.tas-pentest.v5k1.p1.openshiftapps.com/auth/realms/sigstore
   TAS_IMAGE: quay.io/vedadashan2/tastest0502:latest
+  COSIGN_YES: "true"
 
 jobs:
   build:
