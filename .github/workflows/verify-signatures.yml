@@ -83,7 +83,6 @@ jobs:
     - name: Use OIDC token with Sigstore
       run: |
         echo ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_URL }}
-        echo ${{ steps.oidc-token.outputs.id_token }}
-        echo ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
         cosign initialize --mirror=$TUF_URL --root=$TUF_URL/root.json
-        cosign -y sign-blob --output-signature artifact.sig  --oidc-issuer ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_URL }} --identity-token ${{ steps.oidc-token.outputs.id_token }}    dist/artifact.txt
+        echo ${{ steps.oidc-token.outputs.id_token }}
+        cosign sign-blob dist/artifact.txt --bundle cosign.bundle --oidc-issuer ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_URL }} --identity-token ${{ steps.oidc-token.outputs.id_token }}
